@@ -1,0 +1,68 @@
+trigger:
+- main
+
+resources:
+- repo: self
+
+variables:
+  dockerRegistryServiceConnection: '1c0b0510-5c1f-4fed-96dd-e277a2a6311a'
+  imageRepository: 'Image1'
+  containerRegistry: 'containerregistrynew34.azurecr.io'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+  imagePullSecret: 'containerregistrynew341219e556-auth'
+  vmImageName: 'ubuntu-latest'
+
+pool:
+  vmImage: ($vmImageName)
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: Build
+    displayName: Build
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+
+    - upload: manifests
+      artifact: manifests
+
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    environment: 'srizvi0PythonApplicationDeployment-3742.default'
+    dependsOn: Build
+    steps: 
+    
+    - task: KubernetesManifest@0
+      displayName: Create imagePullSecret
+      inputs:
+      action: createSecret
+      secretName: $(imagePullSecret)
+      dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+
+    - task: KubernetesManifest@0
+      displayName: Deploy to Kubernetes cluster
+      inputs:
+      action: deploy
+      manifests: |
+        $(Pipeline.Workspace)/manifests/deployment.yml
+        $(Pipeline.Workspace)/manifests/service.yml
+      imagePullSecrets: |
+        $(imagePullSecret)
+      containers: |
+        $(containerRegistry)/$(imageRepository):$(tag)
+
+
