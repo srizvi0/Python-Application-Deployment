@@ -31,13 +31,6 @@ stages:
         command: 'buildAndPush'
         Dockerfile: '**/Dockerfile'
         tags: 'latest'
-    
-    - task: DownloadBuildArtifacts@1
-      inputs:
-        buildType: 'current'
-        downloadType: 'single'
-        artifactName: 'Artifact1'
-        downloadPath: '$(System.ArtifactsDirectory)'
       
 - stage:
   dependsOn: Build
