@@ -48,7 +48,7 @@ stages:
           namespace: 'default'
           command: 'apply'
           useConfigurationFile: true
-          configuration: '/Deployment.yaml'
+          configuration: '**/Deployment'
           secretType: 'dockerRegistry'
           containerRegistryType: 'Azure Container Registry'
       
