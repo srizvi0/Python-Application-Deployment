@@ -53,7 +53,7 @@ stages:
     displayName: Deploy
     pool:
       vmImage: $(vmImageName)
-    environment: 'srizvi0PythonApplicationDeployment-3503.default'
+    environment: 'Production'
     strategy:
       runOnce:
         deploy:
